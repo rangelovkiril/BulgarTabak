@@ -1,25 +1,29 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from './entities/user.entity';
 import { Habit } from './entities/habits.entity';
-import { UserRepository } from './repositories/user.repository';
+import { connect } from 'http2';
 
 @Module({
-    imports: 
-    [
-        TypeOrmModule.forRoot({
-            type: 'postgres',
-            host: 'localhost',
-            port: 5432,
-            username: 'postgres',
-            password: 'password',
-            database: 'habit_tracker',
-            entities: [User, Habit],
-            synchronize: true,
-        }),
-        TypeOrmModule.forFeature([User, Habit]),
-    ],
-    providers: [UserRepository],
-    exports: [UserRepository],
+  imports: [
+    ConfigModule.forRoot(), 
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const connection: TypeOrmModuleOptions = {
+          type: 'postgres',
+          url: configService.get<string>('DATABASE_URL'),
+          autoLoadEntities: true,
+          synchronize: true, 
+        };
+        console.log('Connected to SupaBase Database: ', connection.url);
+        return connection;
+      },
+    }),
+    TypeOrmModule.forFeature([User, Habit]), 
+  ],
 })
 export class DatabaseModule {}

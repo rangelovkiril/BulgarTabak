@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@nestjs/common": "^11.0.12",
+    "@nestjs/typeorm": "^11.0.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.21"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

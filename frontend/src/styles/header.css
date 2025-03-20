@@ -1,0 +1,57 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  z-index: 1000;
+}
+
+.ghost-button {
+  background: none;
+  border: none;
+  color: #4285f4;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.3s, background-color 0.3s;
+  padding: 10px 20px;
+  border-radius: 50px; /* Smooth edges like an ellipse */
+}
+
+.ghost-button:hover {
+  color: #1a4f84;
+  background-color: rgba(66, 133, 244, 0.1); 
+  box-shadow: 0 0px 20px rgba(66, 133, 244, 0.3); /* Denser shadow */
+}
+
+.header-button {
+  margin: 2px;
+  padding: 15px 50px;
+  border: 1px solid #4285f4;
+  border-radius: 8px;
+  background-color: #4285f4;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.header-button.logout {
+  margin-right: 40px;
+}
+
+.header-button:hover {
+  background-color: #8ac4fe; /* Darker shade on hover */
+  box-shadow: 0 0px 20px rgba(66, 133, 244, 0.3); /* Denser shadow */
+}
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.main-container {
+  margin-top: 60px; /* Add top margin to prevent header from covering content */
+}

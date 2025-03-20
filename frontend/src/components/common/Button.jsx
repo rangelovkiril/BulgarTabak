@@ -1,5 +1,5 @@
 import React from 'react';
-import './common.css';
+import '../../styles/common.css'; // Corrected import path
 
 const Button = ({ onClick, children, type = 'button', className = '' }) => {
     return (

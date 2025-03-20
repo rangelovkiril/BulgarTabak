@@ -1,38 +1,91 @@
-import React from "react";
-
-/*
-Backend Integration TODOs:
-1. Add authentication check
-2. Fetch user's calendar data:
-   - GET /api/calendar/events
-   - Handle pagination
-   - Support date range filtering
-3. Implement real-time updates
-4. Add calendar event management:
-   - Create events
-   - Update events
-   - Delete events
-   - Handle recurring events
-5. Add error boundaries
-6. Implement offline support
-7. Add loading states
-*/
+import React, { useState } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import "../styles/mainPage.css";
 
 const MainPage = () => {
-  // TODO: Implement these features:
-  // const [events, setEvents] = useState([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
 
-  // useEffect(() => {
-  //   const fetchEvents = async () => {
-  //     const response = await axios.get('/api/calendar/events');
-  //     setEvents(response.data);
-  //   };
-  //   fetchEvents();
-  // }, []);
+  const handleDateClick = (arg) => {
+    setSelectedDate(arg.date);
+  };
 
-  return <div>{/* This page is intentionally left blank */}</div>;
+  const handleAddEvent = (event) => {
+    setEvents([
+      ...events,
+      {
+        title: event.title,
+        start: event.start,
+        end: event.end,
+      },
+    ]);
+  };
+
+  const handleEventClick = (clickInfo) => {
+    if (window.confirm(`Delete event '${clickInfo.event.title}'?`)) {
+      clickInfo.event.remove();
+    }
+  };
+
+  return (
+    <div className="main-container">
+      <section className="calendar-section">
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          selectable={true}
+          dateClick={handleDateClick}
+          events={events}
+          eventClick={handleEventClick}
+          height="auto"
+        />
+      </section>
+
+      <section className="schedule-section">
+        <h2>
+          Schedule for{" "}
+          {selectedDate ? selectedDate.toLocaleDateString() : "Today"}
+        </h2>
+        <div className="events-list">
+          {events
+            .filter(
+              (event) =>
+                selectedDate &&
+                new Date(event.start).toDateString() ===
+                  selectedDate.toDateString()
+            )
+            .map((event, index) => (
+              <div key={index} className="event-item">
+                <h3>{event.title}</h3>
+                <p>
+                  {new Date(event.start).toLocaleTimeString()} -{" "}
+                  {new Date(event.end).toLocaleTimeString()}
+                </p>
+              </div>
+            ))}
+        </div>
+        {selectedDate && (
+          <button
+            className="add-event-button"
+            onClick={() => {
+              const title = prompt("Enter event title");
+              if (title) {
+                handleAddEvent({
+                  title,
+                  start: selectedDate,
+                  end: new Date(selectedDate.getTime() + 3600000),
+                });
+              }
+            }}
+          >
+            Add Event
+          </button>
+        )}
+      </section>
+    </div>
+  );
 };
 
 export default MainPage;

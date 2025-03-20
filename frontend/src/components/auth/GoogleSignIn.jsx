@@ -15,20 +15,8 @@ Backend Integration TODOs:
 
 const GoogleSignIn = () => {
   const handleClick = () => {
-    // TODO: Replace with actual Google OAuth flow:
-    // 1. Initialize Google OAuth client
-    // 2. Call google.accounts.oauth2.initTokenClient({
-    //    client_id: config.googleClientId,
-    //    scope: 'https://www.googleapis.com/auth/calendar.readonly',
-    //    callback: async (response) => {
-    //      const backendResponse = await axios.post('/api/auth/google', {
-    //        credential: response.credential
-    //      });
-    //      setToken(backendResponse.data.token);
-    //    }
-    // });
-
-    window.location.href = "/main";
+    // TODO: Implement actual Google OAuth
+    window.location.href = "/select-habits";
   };
 
   return (

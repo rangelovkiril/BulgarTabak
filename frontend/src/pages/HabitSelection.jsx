@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { habitTemplates } from "../data/habitTemplates";
 import { HabitType } from "../types/habits";
-import "../styles/habitSelection.css";
+import "../styles/habitSelection.css"; // Fix the import path
 
 const HabitSelection = () => {
   const navigate = useNavigate();

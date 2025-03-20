@@ -3,6 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import "../styles/mainPage.css";
+import Header from "../components/common/Header";
 
 const MainPage = () => {
   const [events, setEvents] = useState([]);
@@ -31,6 +32,7 @@ const MainPage = () => {
 
   return (
     <div className="main-container">
+      <Header />
       <section className="calendar-section">
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}

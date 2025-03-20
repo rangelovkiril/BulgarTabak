@@ -65,15 +65,6 @@ export const habitTemplates: HabitTemplate[] = [
     finalGoalHours: 1,
     gradualIncreaseWeeks: 8,
   },
-  {
-    id: "journaling",
-    type: HabitType.MEDITATION,
-    name: "Journaling",
-    description: "Daily reflection and writing",
-    initialGoalHours: 0.25,
-    finalGoalHours: 0.5,
-    gradualIncreaseWeeks: 4,
-  },
 
   // Creative Habits
   {
@@ -104,29 +95,5 @@ export const habitTemplates: HabitTemplate[] = [
     initialGoalHours: 1,
     finalGoalHours: 4,
     gradualIncreaseWeeks: 8,
-  },
-  {
-    id: "planning",
-    type: HabitType.PRODUCTIVITY,
-    name: "Daily Planning",
-    description: "Plan and organize tasks",
-    initialGoalHours: 0.25,
-    finalGoalHours: 0.5,
-    gradualIncreaseWeeks: 2,
-  },
-
-  // Cooking Habits
-  {
-    id: "meal-prep",
-    type: HabitType.COOKING,
-    name: "Meal Preparation",
-    description: "Cook healthy meals and prepare food for the week",
-    initialGoalHours: 1,
-    finalGoalHours: 2,
-    gradualIncreaseWeeks: 4,
-    preferredTimeRanges: [
-      { start: "10:00", end: "14:00" },
-      { start: "16:00", end: "19:00" },
-    ],
   },
 ];

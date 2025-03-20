@@ -1,9 +1,12 @@
 export enum HabitType {
-  SLEEP = 'sleep',
-  WORKOUT = 'workout',
-  STUDY = 'study',
-  MEDITATION = 'meditation',
-  READING = 'reading'
+  SLEEP = "sleep",
+  WORKOUT = "workout",
+  STUDY = "study",
+  MEDITATION = "meditation",
+  READING = "reading",
+  CREATIVE = "creative",
+  PRODUCTIVITY = "productivity",
+  COOKING = "cooking",
 }
 
 export interface HabitTemplate {

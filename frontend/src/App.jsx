@@ -4,7 +4,6 @@ import Login from "./components/auth/Login";
 import HabitSelection from "./pages/HabitSelection";
 import MainPage from "./pages/MainPage";
 import "./styles/auth.css";
-import "./styles/common.css";
 
 const App = () => {
   return (

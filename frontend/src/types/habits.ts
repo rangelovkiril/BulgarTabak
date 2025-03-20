@@ -6,7 +6,6 @@ export enum HabitType {
   READING = "reading",
   CREATIVE = "creative",
   PRODUCTIVITY = "productivity",
-  COOKING = "cooking",
 }
 
 export interface HabitTemplate {

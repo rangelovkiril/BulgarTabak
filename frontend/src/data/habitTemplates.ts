@@ -96,19 +96,4 @@ export const habitTemplates: HabitTemplate[] = [
     finalGoalHours: 4,
     gradualIncreaseWeeks: 8,
   },
-
-  // Cooking Habits
-  {
-    id: "meal-prep",
-    type: HabitType.COOKING,
-    name: "Meal Preparation",
-    description: "Cook healthy meals and prepare food for the week",
-    initialGoalHours: 1,
-    finalGoalHours: 2,
-    gradualIncreaseWeeks: 4,
-    preferredTimeRanges: [
-      { start: "10:00", end: "14:00" },
-      { start: "16:00", end: "19:00" },
-    ],
-  },
 ];

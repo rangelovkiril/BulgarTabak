@@ -5,7 +5,9 @@ import HabitSelection from "./pages/HabitSelection";
 import MainPage from "./pages/MainPage";
 import EventForm from "./pages/EventForm";
 import Profile from "./pages/Profile";
+import Friends from "./pages/Friends";
 import "./styles/auth.css";
+import "./styles/common.css";
 
 const App = () => {
   return (
@@ -14,9 +16,10 @@ const App = () => {
         <Route path="/" element={<Login />} />
         <Route path="/select-habits" element={<HabitSelection />} />
         <Route path="/main" element={<MainPage />} />
-        <Route path="/event" element={<EventForm />} /> {/* Add this line */}
+        <Route path="/event" element={<EventForm />} />
         <Route path="/event/edit/:eventId" element={<EventForm />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/friends" element={<Friends />} />
       </Routes>
     </Router>
   );

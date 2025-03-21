@@ -6,6 +6,7 @@ import MainPage from "./pages/MainPage";
 import EventForm from "./pages/EventForm";
 import Profile from "./pages/Profile";
 import Friends from "./pages/Friends";
+import Leaderboard from "./pages/Leaderboard";
 import "./styles/auth.css";
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:friendId" element={<Profile />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
       </Routes>
     </Router>
   );

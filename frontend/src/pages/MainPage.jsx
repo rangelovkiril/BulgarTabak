@@ -71,6 +71,23 @@ const MainPage = () => {
     });
   };
 
+  const renderDayCellContent = (arg) => {
+    const date = arg.date;
+    const dayEvents = events.filter(event => {
+      const eventDate = new Date(event.start);
+      return eventDate.toDateString() === date.toDateString();
+    });
+
+    const eventCount = dayEvents.length;
+
+    return (
+      <div className="day-cell-content">
+        <span className="day-number">{arg.dayNumberText}</span>
+        {eventCount > 0 && <div className="event-indicator">{eventCount}</div>}
+      </div>
+    );
+  };
+
   const calendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: "dayGridMonth",
@@ -95,15 +112,17 @@ const MainPage = () => {
       minute: undefined,
       meridiem: false,
     },
-    dayMaxEvents: 3,
+    dayMaxEvents: true, // When too many events, show the "+more" link
     moreLinkContent: (args) => `+${args.num} more`,
-    eventDisplay: "block",
+    eventDisplay: "none", // Hide the actual events
+    dayMaxEvents: false, // Disable the more link
     nowIndicator: true,
     views: {
       dayGridMonth: {
         titleFormat: { year: "numeric", month: "long" },
       },
     },
+    dayCellContent: renderDayCellContent,
   };
 
   return (

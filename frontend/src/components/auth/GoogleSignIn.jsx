@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { handleGoogleLogin } from "../../services/auth";
 
 /*
 Backend Integration TODOs:
@@ -14,21 +16,53 @@ Backend Integration TODOs:
 */
 
 const GoogleSignIn = () => {
-  const handleClick = () => {
-    // TODO: Implement actual Google OAuth
-    window.location.href = "/select-habits";
-  };
+  const navigate = useNavigate();
 
-  return (
-    <button onClick={handleClick} className="google-button">
-      <img
-        src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4="
-        alt="Google"
-        className="google-icon"
-      />
-      Continue with Google
-    </button>
-  );
+  useEffect(() => {
+    const initializeGoogleLogin = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          callback: async (response) => {
+            try {
+              const redirectPath = await handleGoogleLogin(response);
+              navigate(redirectPath);
+            } catch (error) {
+              console.error("Login error:", error);
+            }
+          },
+          // Remove redirect mode - use popup instead
+          // ux_mode: "redirect",
+          // redirect_uri: `${window.location.origin}/auth/callback`,
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById("google-sign-in"),
+          {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            shape: "rectangular",
+            text: "signin_with",
+            logo_alignment: "left",
+          }
+        );
+      }
+    };
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.onload = initializeGoogleLogin;
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [navigate]);
+
+  return <div id="google-sign-in"></div>;
 };
 
 export default GoogleSignIn;

@@ -5,16 +5,34 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import "../styles/mainPage.css";
 import Header from "../components/common/Header";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import { eventService } from "../services/events";
 
 const MainPage = () => {
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedEvents = JSON.parse(localStorage.getItem("events") || "[]");
-    setEvents(savedEvents);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const fetchedEvents = await eventService.getEvents();
+        setEvents(fetchedEvents);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <div className="error-message">{error}</div>;
 
   const handleDateClick = (arg) => {
     const clickedDate = new Date(arg.date);
@@ -73,7 +91,7 @@ const MainPage = () => {
 
   const renderDayCellContent = (arg) => {
     const date = arg.date;
-    const dayEvents = events.filter(event => {
+    const dayEvents = events.filter((event) => {
       const eventDate = new Date(event.start);
       return eventDate.toDateString() === date.toDateString();
     });
@@ -107,7 +125,6 @@ const MainPage = () => {
       right: "dayGridMonth,dayGridWeek",
     },
     eventTimeFormat: {
-      // Remove time display from calendar cells
       hour: undefined,
       minute: undefined,
       meridiem: false,
@@ -115,7 +132,6 @@ const MainPage = () => {
     dayMaxEvents: true, // When too many events, show the "+more" link
     moreLinkContent: (args) => `+${args.num} more`,
     eventDisplay: "none", // Hide the actual events
-    dayMaxEvents: false, // Disable the more link
     nowIndicator: true,
     views: {
       dayGridMonth: {

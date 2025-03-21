@@ -38,20 +38,6 @@ const Friends = () => {
     navigate(`/friendProfile/${friendId}`); // Make sure this matches the route path
   };
 
-  const handleMessage = (friendId) => {
-    const friend = friends.find((f) => f.id === friendId);
-    if (friend) {
-      setActiveChatFriend(friend);
-    }
-  };
-
-  const handleRemoveFriend = (e, friendId) => {
-    e.stopPropagation();
-    const updatedFriends = friends.filter((f) => f.id !== friendId);
-    localStorage.setItem("friends", JSON.stringify(updatedFriends));
-    setFriends(updatedFriends);
-  };
-
   const filteredFriends = friends.filter((friend) =>
     friend.name.toLowerCase().includes(searchTerm.toLowerCase())
   );

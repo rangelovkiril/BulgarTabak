@@ -8,6 +8,12 @@ export enum HabitType {
   PRODUCTIVITY = "productivity",
 }
 
+export interface TimePreference {
+  startTime: string;
+  endTime: string;
+  daysOfWeek: number[]; // 0-6, where 0 is Sunday
+}
+
 export interface HabitTemplate {
   id: string;
   type: HabitType;
@@ -20,6 +26,10 @@ export interface HabitTemplate {
     start: string;
     end: string;
   }[];
+  timePreferences: TimePreference[];
+  minimumDuration: number; // in minutes
+  idealDuration: number; // in minutes
+  flexibility: "strict" | "moderate" | "flexible";
 }
 
 export interface UserHabit extends HabitTemplate {
@@ -30,4 +40,7 @@ export interface UserHabit extends HabitTemplate {
     date: Date;
     completedHours: number;
   }[];
+  lastCompleted?: Date;
+  nextScheduled?: Date;
+  completionRate: number;
 }

@@ -8,29 +8,26 @@ import Header from "../components/common/Header";
 
 const MainPage = () => {
   const [events, setEvents] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const navigate = useNavigate();
 
-  // Load events from localStorage when component mounts
   useEffect(() => {
     const savedEvents = JSON.parse(localStorage.getItem("events") || "[]");
     setEvents(savedEvents);
   }, []);
 
-  const [selectedDate, setSelectedDate] = useState(null);
-  const navigate = useNavigate();
-
   const handleDateClick = (arg) => {
-    setSelectedDate(arg.date);
+    const clickedDate = new Date(arg.date);
+    // Store the complete ISO date string
+    setSelectedDate(clickedDate);
   };
 
-  const handleAddEvent = (event) => {
-    setEvents([
-      ...events,
-      {
-        title: event.title,
-        start: event.start,
-        end: event.end,
-      },
-    ]);
+  const handleAddEvent = () => {
+    const formattedDate =
+      selectedDate instanceof Date
+        ? selectedDate.toISOString().slice(0, 10)
+        : new Date(selectedDate).toISOString().slice(0, 10);
+    navigate(`/event?date=${formattedDate}`); // Changed to match route in App.jsx
   };
 
   const handleEventClick = (clickInfo) => {
@@ -48,14 +45,40 @@ const MainPage = () => {
     setEvents(updatedEvents);
   };
 
-  const sortedEvents = events.sort(
-    (a, b) => new Date(a.start) - new Date(b.start)
-  );
+  const getEventsForSelectedDate = () => {
+    return events
+      .filter((event) => {
+        const eventDate = new Date(event.start).toDateString();
+        const selected = new Date(selectedDate).toDateString();
+        return eventDate === selected;
+      })
+      .sort((a, b) => new Date(a.start) - new Date(b.start));
+  };
+
+  const renderEventContent = (eventInfo) => {
+    return (
+      <div className="calendar-event">
+        <div className="event-title">{eventInfo.event.title}</div>
+      </div>
+    );
+  };
+
+  const formatEventTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, // Use 24-hour format
+    });
+  };
 
   const calendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: "dayGridMonth",
     selectable: true,
+    selectConstraint: {
+      start: new Date().setHours(0, 0, 0, 0), // Today
+    },
+    validRange: null, // Remove the date restriction
     dateClick: handleDateClick,
     events: events,
     eventClick: handleEventClick,
@@ -67,6 +90,7 @@ const MainPage = () => {
       right: "dayGridMonth,dayGridWeek",
     },
     eventTimeFormat: {
+      // Remove time display from calendar cells
       hour: undefined,
       minute: undefined,
       meridiem: false,
@@ -90,68 +114,62 @@ const MainPage = () => {
       </section>
 
       <section className="schedule-section">
-        <h2>Your Schedule</h2>
+        <h2>Schedule for {new Date(selectedDate).toLocaleDateString()}</h2>
         <div className="events-list">
-          {sortedEvents.map((event, index) => (
-            <div
-              key={index}
-              className="event-item"
-              onClick={() => navigate(`/event/edit/${event.id}`)}
-            >
-              <div className="event-item-content">
-                <h3>{event.title}</h3>
-                <p className="event-time">
-                  {new Date(event.start).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  -{" "}
-                  {new Date(event.end).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="event-date">
-                  {new Date(event.start).toLocaleDateString()}
-                </p>
+          {getEventsForSelectedDate().length > 0 ? (
+            getEventsForSelectedDate().map((event, index) => (
+              <div key={index} className="event-item">
+                <div className="event-item-content">
+                  <h3>{event.title}</h3>
+                  <div className="event-details">
+                    <span className="event-time">
+                      {formatEventTime(event.start)} -{" "}
+                      {formatEventTime(event.end)}
+                    </span>
+                    {event.description && (
+                      <p className="event-description">{event.description}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="event-actions">
+                  <button
+                    className="edit-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/event/edit/${event.id}`);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={(e) => handleDelete(e, event.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div className="event-actions">
-                <button
-                  className="edit-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/event/edit/${event.id}`);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="delete-button"
-                  onClick={(e) => handleDelete(e, event.id)}
-                >
-                  Delete
-                </button>
-              </div>
+            ))
+          ) : (
+            <div className="no-events">
+              <p>No events scheduled for this day</p>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
       <button
         className="floating-action-button"
-        onClick={() => navigate("/event")}
+        style={{
+          display:
+            new Date(selectedDate) < new Date().setHours(0, 0, 0, 0)
+              ? "none"
+              : "flex",
+        }}
+        onClick={handleAddEvent}
       >
         +
       </button>
-    </div>
-  );
-};
-
-// Add this function to customize event rendering
-const renderEventContent = (eventInfo) => {
-  return (
-    <div className="calendar-event">
-      <div className="event-title">{eventInfo.event.title}</div>
     </div>
   );
 };

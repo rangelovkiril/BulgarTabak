@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import "../styles/eventForm.css";
 
 const EventForm = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the date from URL parameters
+  const urlDate = new URLSearchParams(location.search).get("date");
+  const today = new Date().toISOString().split("T")[0];
+
   const [eventData, setEventData] = useState({
     title: "",
-    date: new Date().toISOString().split("T")[0],
+    description: "", // Add description field
+    date: urlDate || today, // Use passed date or today as fallback
     startTime: "09:00",
     endTime: "10:00",
   });
@@ -24,6 +31,7 @@ const EventForm = () => {
 
         setEventData({
           title: event.title,
+          description: event.description || "", // Add description
           date,
           startTime,
           endTime,
@@ -39,6 +47,7 @@ const EventForm = () => {
     const newEvent = {
       id: eventId ? Number(eventId) : Date.now(),
       title: eventData.title,
+      description: eventData.description, // Add description
       start: `${eventData.date}T${eventData.startTime}`,
       end: `${eventData.date}T${eventData.endTime}`,
     };
@@ -79,6 +88,18 @@ const EventForm = () => {
         </div>
 
         <div className="form-group">
+          <label>Description</label>
+          <textarea
+            value={eventData.description}
+            onChange={(e) =>
+              setEventData({ ...eventData, description: e.target.value })
+            }
+            placeholder="Enter event description"
+            rows={3}
+          />
+        </div>
+
+        <div className="form-group">
           <label>Date</label>
           <input
             type="date"
@@ -86,6 +107,7 @@ const EventForm = () => {
             onChange={(e) =>
               setEventData({ ...eventData, date: e.target.value })
             }
+            min={today} // Restrict to today and future dates
             required
           />
         </div>

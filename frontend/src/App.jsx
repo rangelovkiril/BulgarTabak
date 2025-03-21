@@ -7,6 +7,7 @@ import EventForm from "./pages/EventForm";
 import Profile from "./pages/Profile";
 import Friends from "./pages/Friends";
 import Leaderboard from "./pages/Leaderboard";
+import FriendProfile from "./pages/FriendProfile";
 import "./styles/auth.css";
 
 const App = () => {
@@ -20,6 +21,11 @@ const App = () => {
         <Route path="/event/edit/:eventId" element={<EventForm />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:friendId" element={<Profile />} />
+        <Route
+          path="/friendProfile/:friendId"
+          element={<FriendProfile />}
+        />{" "}
+        {/* Make sure this route exists */}
         <Route path="/friends" element={<Friends />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
       </Routes>

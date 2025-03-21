@@ -10,6 +10,7 @@ const Friends = () => {
   const [newFriendName, setNewFriendName] = useState("");
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [activeChatFriend, setActiveChatFriend] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const savedFriends = JSON.parse(localStorage.getItem("friends") || "[]");
@@ -34,12 +35,7 @@ const Friends = () => {
   };
 
   const handleViewProfile = (friendId) => {
-    const friend = friends.find((f) => f.id === friendId);
-    if (friend) {
-      // Store selected friend in localStorage for profile page
-      localStorage.setItem("selectedFriend", JSON.stringify(friend));
-      navigate(`/profile/${friendId}`);
-    }
+    navigate(`/friendProfile/${friendId}`); // Make sure this matches the route path
   };
 
   const handleMessage = (friendId) => {
@@ -51,75 +47,81 @@ const Friends = () => {
 
   const handleRemoveFriend = (e, friendId) => {
     e.stopPropagation();
-    if (window.confirm("Are you sure you want to remove this friend?")) {
-      const updatedFriends = friends.filter((f) => f.id !== friendId);
-      localStorage.setItem("friends", JSON.stringify(updatedFriends));
-      setFriends(updatedFriends);
-    }
+    const updatedFriends = friends.filter((f) => f.id !== friendId);
+    localStorage.setItem("friends", JSON.stringify(updatedFriends));
+    setFriends(updatedFriends);
   };
+
+  const filteredFriends = friends.filter((friend) =>
+    friend.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="friends-container">
       <Header />
       <div className="friends-content">
         <div className="friends-header">
-          <div className="glass-panel">
-            <h1>Your Friends</h1>
-            <p>{friends.length} friends connected</p>
+          <div className="search-bar">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search friends..."
+              className="search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+          <button
+            className="add-friend-btn"
+            onClick={() => setIsAddingFriend(true)}
+          >
+            <span>+</span> Add Friend
+          </button>
         </div>
 
-        <div className="friends-grid">
-          {friends.map((friend) => (
-            <div key={friend.id} className="friend-card">
-              <div className="friend-card-inner">
-                <div className="friend-info">
+        {filteredFriends.length > 0 ? (
+          <div className="friends-grid">
+            {filteredFriends.map((friend) => (
+              <div
+                key={friend.id}
+                className="friend-card"
+                onClick={() => handleViewProfile(friend.id)}
+              >
+                <div className="friend-header">
                   <img
                     src={friend.avatar}
                     alt={friend.name}
                     className="friend-avatar"
                   />
-                  <h3>{friend.name}</h3>
-                  <p>
-                    Joined {new Date(friend.joinedDate).toLocaleDateString()}
-                  </p>
+                  <div className="friend-info">
+                    <h3 className="friend-name">{friend.name}</h3>
+                    <div className="friend-status">
+                      <span className={`status-dot ${friend.status}`}></span>
+                      <span>{friend.status}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="friend-actions">
-                  <button
-                    className="view-profile-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleViewProfile(friend.id);
-                    }}
-                  >
-                    View Profile
-                  </button>
-                  <button
-                    className="message-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleMessage(friend.id);
-                    }}
-                  >
-                    Message
-                  </button>
+
+                <div className="friend-stats">
+                  <div className="stat">
+                    <div className="stat-label">Current Streak</div>
+                    <div className="stat-value">{friend.streak} days</div>
+                  </div>
+                  <div className="stat">
+                    <div className="stat-label">Level</div>
+                    <div className="stat-value">{friend.level}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-
-          <button
-            className="add-friend-card"
-            onClick={() => setIsAddingFriend(true)}
-          >
-            <div className="add-friend-content">
-              <span className="add-icon">+</span>
-              <span>Add Friend</span>
-            </div>
-          </button>
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-state-icon">👥</div>
+            <h2>No friends found</h2>
+            <p>Try adjusting your search or add some new friends!</p>
+          </div>
+        )}
       </div>
 
       {isAddingFriend && (

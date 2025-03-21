@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -7,85 +8,168 @@ import Header from "../components/common/Header";
 
 const MainPage = () => {
   const [events, setEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedEvents = JSON.parse(localStorage.getItem("events") || "[]");
+    setEvents(savedEvents);
+  }, []);
 
   const handleDateClick = (arg) => {
-    setSelectedDate(arg.date);
+    const clickedDate = new Date(arg.date);
+    // Store the complete ISO date string
+    setSelectedDate(clickedDate);
   };
 
-  const handleAddEvent = (event) => {
-    setEvents([
-      ...events,
-      {
-        title: event.title,
-        start: event.start,
-        end: event.end,
-      },
-    ]);
+  const handleAddEvent = () => {
+    const formattedDate =
+      selectedDate instanceof Date
+        ? selectedDate.toISOString().slice(0, 10)
+        : new Date(selectedDate).toISOString().slice(0, 10);
+    navigate(`/event?date=${formattedDate}`); // Changed to match route in App.jsx
   };
 
   const handleEventClick = (clickInfo) => {
-    if (window.confirm(`Delete event '${clickInfo.event.title}'?`)) {
-      clickInfo.event.remove();
-    }
+    const updatedEvents = events.filter(
+      (event) => event.id !== clickInfo.event.id
+    );
+    localStorage.setItem("events", JSON.stringify(updatedEvents));
+    setEvents(updatedEvents);
+  };
+
+  const handleDelete = (e, eventId) => {
+    e.stopPropagation();
+    const updatedEvents = events.filter((event) => event.id !== eventId);
+    localStorage.setItem("events", JSON.stringify(updatedEvents));
+    setEvents(updatedEvents);
+  };
+
+  const getEventsForSelectedDate = () => {
+    return events
+      .filter((event) => {
+        const eventDate = new Date(event.start).toDateString();
+        const selected = new Date(selectedDate).toDateString();
+        return eventDate === selected;
+      })
+      .sort((a, b) => new Date(a.start) - new Date(b.start));
+  };
+
+  const renderEventContent = (eventInfo) => {
+    return (
+      <div className="calendar-event">
+        <div className="event-title">{eventInfo.event.title}</div>
+      </div>
+    );
+  };
+
+  const formatEventTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, // Use 24-hour format
+    });
+  };
+
+  const calendarOptions = {
+    plugins: [dayGridPlugin, interactionPlugin],
+    initialView: "dayGridMonth",
+    selectable: true,
+    selectConstraint: {
+      start: new Date().setHours(0, 0, 0, 0), // Today
+    },
+    validRange: null, // Remove the date restriction
+    dateClick: handleDateClick,
+    events: events,
+    eventClick: handleEventClick,
+    height: "auto",
+    eventContent: renderEventContent,
+    headerToolbar: {
+      left: "prev,next today",
+      center: "title",
+      right: "dayGridMonth,dayGridWeek",
+    },
+    eventTimeFormat: {
+      // Remove time display from calendar cells
+      hour: undefined,
+      minute: undefined,
+      meridiem: false,
+    },
+    dayMaxEvents: 3,
+    moreLinkContent: (args) => `+${args.num} more`,
+    eventDisplay: "block",
+    nowIndicator: true,
+    views: {
+      dayGridMonth: {
+        titleFormat: { year: "numeric", month: "long" },
+      },
+    },
   };
 
   return (
     <div className="main-container">
       <Header />
       <section className="calendar-section">
-        <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          selectable={true}
-          dateClick={handleDateClick}
-          events={events}
-          eventClick={handleEventClick}
-          height="auto"
-        />
+        <FullCalendar {...calendarOptions} />
       </section>
 
       <section className="schedule-section">
-        <h2>
-          Schedule for{" "}
-          {selectedDate ? selectedDate.toLocaleDateString() : "Today"}
-        </h2>
+        <h2>Schedule for {new Date(selectedDate).toLocaleDateString()}</h2>
         <div className="events-list">
-          {events
-            .filter(
-              (event) =>
-                selectedDate &&
-                new Date(event.start).toDateString() ===
-                  selectedDate.toDateString()
-            )
-            .map((event, index) => (
+          {getEventsForSelectedDate().length > 0 ? (
+            getEventsForSelectedDate().map((event, index) => (
               <div key={index} className="event-item">
-                <h3>{event.title}</h3>
-                <p>
-                  {new Date(event.start).toLocaleTimeString()} -{" "}
-                  {new Date(event.end).toLocaleTimeString()}
-                </p>
+                <div className="event-item-content">
+                  <h3>{event.title}</h3>
+                  <div className="event-details">
+                    <span className="event-time">
+                      {formatEventTime(event.start)} -{" "}
+                      {formatEventTime(event.end)}
+                    </span>
+                    {event.description && (
+                      <p className="event-description">{event.description}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="event-actions">
+                  <button
+                    className="edit-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/event/edit/${event.id}`);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={(e) => handleDelete(e, event.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            ))}
+            ))
+          ) : (
+            <div className="no-events">
+              <p>No events scheduled for this day</p>
+            </div>
+          )}
         </div>
-        {selectedDate && (
-          <button
-            className="add-event-button"
-            onClick={() => {
-              const title = prompt("Enter event title");
-              if (title) {
-                handleAddEvent({
-                  title,
-                  start: selectedDate,
-                  end: new Date(selectedDate.getTime() + 3600000),
-                });
-              }
-            }}
-          >
-            Add Event
-          </button>
-        )}
       </section>
+
+      <button
+        className="floating-action-button"
+        style={{
+          display:
+            new Date(selectedDate) < new Date().setHours(0, 0, 0, 0)
+              ? "none"
+              : "flex",
+        }}
+        onClick={handleAddEvent}
+      >
+        +
+      </button>
     </div>
   );
 };

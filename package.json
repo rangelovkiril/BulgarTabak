@@ -1,11 +1,18 @@
 {
   "dependencies": {
+    "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.12",
+    "@nestjs/config": "^4.0.1",
+    "@nestjs/mongoose": "^11.0.2",
     "@nestjs/typeorm": "^11.0.0",
+    "googleapis": "^148.0.0",
+    "mongoose": "^8.12.1",
     "reflect-metadata": "^0.2.2",
+    "ts-node": "^10.9.2",
     "typeorm": "^0.3.21"
   },
   "devDependencies": {
+    "@types/moment": "^2.13.0",
     "typescript": "^5.8.2"
   }
 }

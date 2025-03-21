@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Button from "./Button";
 import "../../styles/header.css";
+import { signOut } from "../../firebase/firebase";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -19,6 +20,17 @@ const Header = () => {
   const handleProfileClick = () => {
     // Always navigate to user's own profile
     navigate("/profile");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      localStorage.removeItem("localMode");
+      localStorage.removeItem("user");
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -53,7 +65,7 @@ const Header = () => {
           Profile
         </Button>
         <Button
-          onClick={() => navigate("/")}
+          onClick={handleLogout}
           className="header-button logout"
           aria-label="Logout"
         >

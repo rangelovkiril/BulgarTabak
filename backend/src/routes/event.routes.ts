@@ -1,27 +1,23 @@
 import express from "express";
 import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 import { authenticateToken } from "../middleware/auth";
-import { pool } from "../config/database";
+import db from "../config/database";
 
 const router = express.Router();
 
-type AsyncHandler = (req: Request, res: Response) => Promise<void>;
-
-const getEvents: AsyncHandler = async (req, res) => {
+const getEvents = async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   if (!userId) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
-  const [events] = await pool.execute(
-    "SELECT * FROM events WHERE user_id = ?",
-    [userId]
-  );
-  res.json(events || []);
+  const events = db.get("events").filter({ user_id: userId }).value() || [];
+  res.json(events);
 };
 
-const createEvent: AsyncHandler = async (req, res) => {
+const createEvent = async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   if (!userId) {
     res.status(401).json({ message: "Unauthorized" });
@@ -29,14 +25,22 @@ const createEvent: AsyncHandler = async (req, res) => {
   }
 
   const { title, description, start_time, end_time } = req.body;
-  const [result] = await pool.execute(
-    "INSERT INTO events (id, user_id, title, description, start_time, end_time) VALUES (UUID(), ?, ?, ?, ?, ?)",
-    [userId, title, description, start_time, end_time]
-  );
-  res.status(201).json(result);
+
+  const newEvent = {
+    id: uuidv4(),
+    user_id: userId,
+    title,
+    description,
+    start_time,
+    end_time,
+    created_at: new Date().toISOString(),
+  };
+
+  db.get("events").push(newEvent).write();
+  res.status(201).json(newEvent);
 };
 
-router.get("/", authenticateToken, (req, res) => getEvents(req, res));
-router.post("/", authenticateToken, (req, res) => createEvent(req, res));
+router.get("/", authenticateToken, getEvents);
+router.post("/", authenticateToken, createEvent);
 
 export { router };

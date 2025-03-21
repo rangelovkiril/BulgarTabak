@@ -17,9 +17,14 @@ export const isAuthenticated = () => {
   if (!token) return false;
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    // The token format is: header.payload.signature
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+
+    const payload = JSON.parse(atob(parts[1]));
     return payload.exp > Date.now() / 1000;
-  } catch {
+  } catch (error) {
+    console.error("Error verifying authentication:", error);
     return false;
   }
 };
@@ -34,19 +39,31 @@ interface GoogleResponse {
 
 export const handleGoogleLogin = async (response: GoogleResponse) => {
   try {
+    console.log("Sending Google credential to backend:", response.credential);
+    // Fix the URL by removing the duplicate /api
     const result = await api.post("/auth/google", {
       credential: response.credential,
     });
 
+    console.log("Backend response:", result.data);
     const { token, user } = result.data;
+
+    if (!token) {
+      console.error("No token received from backend");
+      throw new Error("Authentication failed");
+    }
+
+    // Store token and user
     setToken(token);
     localStorage.setItem("user", JSON.stringify(user));
 
-    // If first time user, redirect to habit selection
-    if (user.isNewUser) {
-      return "/select-habits";
-    }
-    return "/main";
+    console.log(
+      "Authentication successful, redirect path:",
+      user.isNewUser ? "/select-habits" : "/main"
+    );
+
+    // Return the redirect path
+    return user.isNewUser ? "/select-habits" : "/main";
   } catch (error) {
     console.error("Google login error:", error);
     throw error;

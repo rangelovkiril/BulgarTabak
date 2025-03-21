@@ -19,11 +19,17 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/habits", habitRoutes);
-app.use("/api/events", eventRoutes);
-app.use("/api/users", userRoutes);
+// Base route to check if API is working
+app.get("/", (req, res) => {
+  res.json({ message: "API is running" });
+});
+
+// API routes - choose either with or without /api prefix based on frontend config
+// Without /api prefix (if frontend adds it in the API service baseURL)
+app.use("/auth", authRoutes);
+app.use("/habits", habitRoutes);
+app.use("/events", eventRoutes);
+app.use("/users", userRoutes);
 
 // Socket.io connection handling
 io.on("connection", (socket: Socket) => {

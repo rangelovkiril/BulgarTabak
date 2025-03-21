@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import "../styles/eventForm.css";
+import { eventService } from "../services/events"; // Missing import
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const EventForm = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   // Get the date from URL parameters
   const urlDate = new URLSearchParams(location.search).get("date");
@@ -13,58 +17,80 @@ const EventForm = () => {
 
   const [eventData, setEventData] = useState({
     title: "",
-    description: "", // Add description field
-    date: urlDate || today, // Use passed date or today as fallback
+    description: "",
+    date: urlDate || today,
     startTime: "09:00",
     endTime: "10:00",
   });
 
   useEffect(() => {
-    if (eventId) {
-      const events = JSON.parse(localStorage.getItem("events") || "[]");
-      const event = events.find((e) => e.id === Number(eventId));
+    const fetchEvent = async () => {
+      if (eventId) {
+        try {
+          // Get events from service instead of localStorage
+          const events = await eventService.getEvents();
+          const event = events.find((e) => e.id === eventId);
 
-      if (event) {
-        const date = new Date(event.start).toISOString().split("T")[0];
-        const startTime = new Date(event.start).toTimeString().slice(0, 5);
-        const endTime = new Date(event.end).toTimeString().slice(0, 5);
+          if (event) {
+            const date = new Date(event.start).toISOString().split("T")[0];
+            const startTime = new Date(event.start).toTimeString().slice(0, 5);
+            const endTime = new Date(event.end).toTimeString().slice(0, 5);
 
-        setEventData({
-          title: event.title,
-          description: event.description || "", // Add description
-          date,
-          startTime,
-          endTime,
-        });
+            setEventData({
+              title: event.title,
+              description: event.description || "",
+              date,
+              startTime,
+              endTime,
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching event:", error);
+          setError("Failed to load event details");
+        }
       }
-    }
-  }, [eventId]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const events = JSON.parse(localStorage.getItem("events") || "[]");
-
-    const newEvent = {
-      id: eventId ? Number(eventId) : Date.now(),
-      title: eventData.title,
-      description: eventData.description, // Add description
-      start: `${eventData.date}T${eventData.startTime}`,
-      end: `${eventData.date}T${eventData.endTime}`,
     };
 
-    if (eventId) {
-      // Update existing event
-      const updatedEvents = events.map((event) =>
-        event.id === Number(eventId) ? newEvent : event
-      );
-      localStorage.setItem("events", JSON.stringify(updatedEvents));
-    } else {
-      // Add new event
-      localStorage.setItem("events", JSON.stringify([...events, newEvent]));
-    }
+    fetchEvent();
+  }, [eventId]);
 
-    navigate("/main");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Format the data for the service
+      const formattedEvent = {
+        title: eventData.title,
+        description: eventData.description,
+        start: `${eventData.date}T${eventData.startTime}:00`,
+        end: `${eventData.date}T${eventData.endTime}:00`,
+      };
+
+      console.log("Submitting event:", formattedEvent);
+
+      if (eventId) {
+        // Update existing event
+        await eventService.updateEvent(eventId, formattedEvent);
+      } else {
+        // Create new event
+        await eventService.createEvent(formattedEvent);
+      }
+
+      // Navigate back to main page
+      navigate("/main");
+    } catch (error) {
+      console.error("Error saving event:", error);
+      setError("Failed to save event. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isSubmitting) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="event-form-container">
@@ -72,6 +98,8 @@ const EventForm = () => {
         <h1>{eventId ? "Edit Event" : "Create New Event"}</h1>
         <p>Schedule your time effectively</p>
       </header>
+
+      {error && <div className="error-message">{error}</div>}
 
       <form onSubmit={handleSubmit} className="event-form">
         <div className="form-group">
@@ -146,7 +174,11 @@ const EventForm = () => {
           >
             Cancel
           </button>
-          <button type="submit" className="submit-button">
+          <button
+            type="submit"
+            className="submit-button"
+            disabled={isSubmitting}
+          >
             {eventId ? "Update Event" : "Create Event"}
           </button>
         </div>

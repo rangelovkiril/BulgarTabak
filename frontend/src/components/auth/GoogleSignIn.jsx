@@ -1,68 +1,58 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { handleGoogleLogin } from "../../services/auth";
-
-/*
-Backend Integration TODOs:
-1. Implement Google OAuth2 flow
-2. Send Google token to backend endpoint (/api/auth/google)
-3. Receive and store:
-   - JWT token
-   - User profile data
-   - Google Calendar access token
-4. Handle OAuth errors and display them
-5. Add refresh token logic
-6. Add token persistence
-*/
+import { signInWithGoogle } from "../../firebase/firebase";
 
 const GoogleSignIn = () => {
   const navigate = useNavigate();
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const initializeGoogleLogin = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          callback: async (response) => {
-            try {
-              const redirectPath = await handleGoogleLogin(response);
-              navigate(redirectPath);
-            } catch (error) {
-              console.error("Login error:", error);
-            }
-          },
-          // Remove redirect mode - use popup instead
-          // ux_mode: "redirect",
-          // redirect_uri: `${window.location.origin}/auth/callback`,
-        });
+  const handleGoogleSignIn = async () => {
+    try {
+      setError(null);
+      const result = await signInWithGoogle();
 
-        window.google.accounts.id.renderButton(
-          document.getElementById("google-sign-in"),
-          {
-            theme: "outline",
-            size: "large",
-            type: "standard",
-            shape: "rectangular",
-            text: "signin_with",
-            logo_alignment: "left",
-          }
-        );
-      }
-    };
+      // Store the user info in localStorage for consistency with existing code
+      localStorage.setItem("user", JSON.stringify(result.user));
 
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.onload = initializeGoogleLogin;
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+      // Navigate based on whether the user is new
+      const redirectPath = result.user.isNewUser ? "/select-habits" : "/main";
+      navigate(redirectPath);
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Authentication failed. Please try again.");
+    }
+  };
 
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [navigate]);
-
-  return <div id="google-sign-in"></div>;
+  return (
+    <>
+      <button
+        onClick={handleGoogleSignIn}
+        className="google-button"
+        style={{
+          padding: "12px",
+          backgroundColor: "white",
+          color: "#757575",
+          border: "1px solid #ddd",
+          borderRadius: "4px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          cursor: "pointer",
+          fontWeight: "500",
+          fontSize: "14px",
+        }}
+      >
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
+          alt="Google logo"
+          style={{ height: "18px", marginRight: "10px" }}
+        />
+        Sign in with Google
+      </button>
+      {error && <div className="auth-error">{error}</div>}
+    </>
+  );
 };
 
 export default GoogleSignIn;

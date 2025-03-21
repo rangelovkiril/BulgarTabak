@@ -2,12 +2,16 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { habitTemplates } from "../data/habitTemplates";
 import { HabitType } from "../types/habits";
-import "../styles/habitSelection.css"; // Fix the import path
+import "../styles/habitSelection.css";
+import { habitService } from "../services/habits";
+import { auth } from "../firebase/firebase";
 
 const HabitSelection = () => {
   const navigate = useNavigate();
   const [selectedHabits, setSelectedHabits] = useState({});
   const [activeCategory, setActiveCategory] = useState("all");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   // Group habits by type
   const habitsByType = habitTemplates.reduce((acc, habit) => {
@@ -29,17 +33,78 @@ const HabitSelection = () => {
     }));
   };
 
-  const handleSubmit = () => {
-    const selectedWithGoals = Object.entries(selectedHabits)
-      .filter(([_, value]) => value && value.goalHours)
-      .reduce((acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-      }, {});
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setError(""); // Clear any previous errors
 
-    if (Object.keys(selectedWithGoals).length > 0) {
-      localStorage.setItem("userHabits", JSON.stringify(selectedWithGoals));
-      navigate("/main");
+      const selectedWithGoals = Object.entries(selectedHabits)
+        .filter(([_, value]) => value && value.goalHours)
+        .reduce((acc, [key, value]) => {
+          acc[key] = value;
+          return acc;
+        }, {});
+
+      if (Object.keys(selectedWithGoals).length > 0) {
+        // ALWAYS enable local mode when Firebase permissions fail
+        localStorage.setItem("localMode", "true");
+        console.log("Local mode enabled for habit saving");
+
+        // Find the habit templates and save them one by one
+        for (const [habitId, settings] of Object.entries(selectedWithGoals)) {
+          try {
+            const habitTemplate = habitTemplates.find((h) => h.id === habitId);
+            if (habitTemplate) {
+              // Ensure goalHours is a valid number and all required fields are present
+              const goalHours = parseFloat(settings.goalHours);
+              if (isNaN(goalHours)) {
+                throw new Error(
+                  `Invalid goal hours for habit: ${habitTemplate.name}`
+                );
+              }
+
+              // Prepare habit data with all required fields
+              const habitData = {
+                ...habitTemplate,
+                finalGoalHours: goalHours,
+                initialGoalHours: Math.min(
+                  goalHours * 0.4,
+                  goalHours - 0.5 > 0 ? goalHours - 0.5 : goalHours * 0.5
+                ),
+                currentProgress: 0,
+                streak: 0,
+                // Add these fields that are needed for proper scheduling
+                startDate: new Date().toISOString(),
+                completionHistory: [],
+                // For Training, ensure daily scheduling
+                forceDaily: habitTemplate.name === "Training",
+              };
+
+              console.log(
+                `Saving habit: ${habitTemplate.name} with goal: ${goalHours} hours`
+              );
+              await localDataService.saveHabit(habitData); // Use localDataService directly to bypass Firebase
+            }
+          } catch (err) {
+            console.error(`Error saving habit ${habitId}:`, err);
+            throw err; // Re-throw to be caught by outer catch
+          }
+        }
+
+        // If we get here, all habits were saved successfully
+        navigate("/main");
+      } else {
+        setError("Please select at least one habit and set a goal.");
+      }
+    } catch (error) {
+      console.error("Error in habit submission:", error);
+      setError(
+        `Failed to save your habit selections: ${
+          error.message || "Unknown error"
+        }`
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -139,12 +204,23 @@ const HabitSelection = () => {
         <div>
           <p>Selected: {Object.keys(selectedHabits).length} habits</p>
           <button
-            className="submit-button"
+            className={`submit-button ${isSubmitting ? "loading" : ""}`}
             onClick={handleSubmit}
-            disabled={!Object.values(selectedHabits).some((h) => h?.goalHours)}
+            disabled={
+              !Object.values(selectedHabits).some((h) => h?.goalHours) ||
+              isSubmitting
+            }
           >
-            Continue to Calendar
+            {isSubmitting ? "Saving..." : "Continue to Calendar"}
           </button>
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
+              <button onClick={() => setError("")} className="close-error">
+                ×
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

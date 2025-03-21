@@ -1165,3 +1165,316 @@
 .calendar-event {
   display: none !important;
 }
+
+.edit-button {
+  background: #4285f4; /* Blue button background */
+  color: white; /* White text for contrast */
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600; /* Make text bolder */
+  transition: all 0.3s ease;
+  margin-right: 10px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
+}
+
+.edit-button:hover {
+  background: #1a73e8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Habit styling */
+.habit-event {
+  border-left-color: #9c27b0 !important; /* Purple for habits by default */
+}
+
+.habit-item {
+  border-left-width: 4px;
+  border-left-style: solid;
+  background: rgba(156, 39, 176, 0.05);
+}
+
+.habit-item h3 {
+  display: flex;
+  align-items: center;
+}
+
+.habit-item h3::before {
+  content: "⭐";
+  margin-right: 8px;
+  font-size: 0.9rem;
+}
+
+.complete-button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
+  color: white;
+}
+
+.complete-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+}
+
+.habit-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.habit-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #5f6368;
+}
+
+.habit-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #9c27b0;
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+}
+
+.habit-toggle input[type="checkbox"]:checked {
+  background: #9c27b0;
+}
+
+.habit-toggle input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: -2px;
+  left: 2px;
+}
+
+/* Habit progress indicator */
+.habit-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  background: rgba(156, 39, 176, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(156, 39, 176, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.progress-value {
+  height: 100%;
+  background: #9c27b0;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: #9c27b0;
+  white-space: nowrap;
+}
+
+/* Different colors for different habit types */
+.habit-item[data-type="SLEEP"] {
+  border-left-color: #9c27b0;
+}
+
+.habit-item[data-type="WORKOUT"] {
+  border-left-color: #f44336;
+}
+
+.habit-item[data-type="STUDY"] {
+  border-left-color: #2196f3;
+}
+
+.habit-item[data-type="MEDITATION"] {
+  border-left-color: #4caf50;
+}
+
+.habit-item[data-type="READING"] {
+  border-left-color: #ff9800;
+}
+
+.habit-item[data-type="CREATIVE"] {
+  border-left-color: #e91e63;
+}
+
+.habit-item[data-type="PRODUCTIVITY"] {
+  border-left-color: #607d8b;
+}
+
+/* Completion feedback styling */
+.completion-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(156, 39, 176, 0.95);
+  color: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  text-align: center;
+  animation: fadeInOut 2s ease-in-out;
+  max-width: 90%;
+  width: 350px;
+}
+
+.points-earned {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.points-label {
+  font-size: 1rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.completion-feedback p {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+.new-achievements {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.achievement-unlocked {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+}
+
+.achievement-icon {
+  font-size: 1.5rem;
+}
+
+.achievement-title {
+  font-weight: 600;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+}
+
+/* Habit progress info */
+.habit-progress-info {
+  margin-top: 0.75rem;
+  background: rgba(156, 39, 176, 0.08);
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.habit-progress-info p {
+  margin: 0 0 8px 0;
+  color: #673ab7;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.progress-bar {
+  height: 8px;
+  background: rgba(156, 39, 176, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.progress-value {
+  height: 100%;
+  background: linear-gradient(to right, #9c27b0, #673ab7);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Better styling for habit items to show progression */
+.habit-item .event-item-content h3 {
+  display: flex;
+  align-items: center;
+  color: #673ab7;
+  font-weight: 700;
+}
+
+.habit-item[data-type="WORKOUT"] .event-item-content h3 {
+  color: #f44336;
+}
+
+.habit-item[data-type="WORKOUT"] .habit-progress-info p {
+  color: #f44336;
+}
+
+.habit-item[data-type="WORKOUT"] .progress-bar .progress-value {
+  background: linear-gradient(to right, #f44336, #d32f2f);
+}
+
+/* Habit progress info */
+.habit-progress-info {
+  margin-top: 0.5rem;
+  background: rgba(156, 39, 176, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.habit-progress-info p {
+  margin: 0;
+  color: #9c27b0;
+  font-weight: 500;
+}

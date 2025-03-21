@@ -43,7 +43,7 @@
 }
 
 .default-avatar {
-  background: #E8E8E8;
+  background: #e8e8e8;
 }
 
 .default-avatar.hidden {
@@ -163,4 +163,68 @@
 .edit-habits-button:hover {
   background-color: #357abd;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.friend-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.message-btn,
+.remove-friend-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+}
+
+.message-btn {
+  background: #000000; /* Changed to match theme blue */
+  color: white;
+  box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+  flex: 2; /* Takes up more space than remove button */
+}
+
+.message-btn:hover {
+  background: #1557b0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+}
+
+.message-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.remove-friend-btn {
+  background: #dc3545;
+  color: white;
+  flex: 1; /* Takes up less space than message button */
+  font-size: 0.8rem; /* Slightly smaller text */
+  height: 36px;
+  text-align: center;
+  padding: 1rem;
+  margin-top: auto;
+  display: flex; /* Add display flex */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+}
+
+.remove-friend-btn:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+.joined-date {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
 }

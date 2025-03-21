@@ -19,6 +19,7 @@ const App = () => {
         <Route path="/event" element={<EventForm />} />
         <Route path="/event/edit/:eventId" element={<EventForm />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/:friendId" element={<Profile />} />
         <Route path="/friends" element={<Friends />} />
       </Routes>
     </Router>

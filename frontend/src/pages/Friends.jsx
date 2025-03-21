@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import "../styles/friends.css"; // This import should now work
+import ChatModal from "../components/chat/ChatModal";
 
 const Friends = () => {
+  const navigate = useNavigate();
   const [friends, setFriends] = useState([]);
   const [newFriendName, setNewFriendName] = useState("");
   const [isAddingFriend, setIsAddingFriend] = useState(false);
+  const [activeChatFriend, setActiveChatFriend] = useState(null);
 
   useEffect(() => {
     const savedFriends = JSON.parse(localStorage.getItem("friends") || "[]");
@@ -30,13 +34,28 @@ const Friends = () => {
   };
 
   const handleViewProfile = (friendId) => {
-    // For now just show an alert, later can navigate to profile page
-    alert("Profile view coming soon!");
+    const friend = friends.find((f) => f.id === friendId);
+    if (friend) {
+      // Store selected friend in localStorage for profile page
+      localStorage.setItem("selectedFriend", JSON.stringify(friend));
+      navigate(`/profile/${friendId}`);
+    }
   };
 
   const handleMessage = (friendId) => {
-    // For now just show an alert, later can open chat
-    alert("Chat feature coming soon!");
+    const friend = friends.find((f) => f.id === friendId);
+    if (friend) {
+      setActiveChatFriend(friend);
+    }
+  };
+
+  const handleRemoveFriend = (e, friendId) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to remove this friend?")) {
+      const updatedFriends = friends.filter((f) => f.id !== friendId);
+      localStorage.setItem("friends", JSON.stringify(updatedFriends));
+      setFriends(updatedFriends);
+    }
   };
 
   return (
@@ -54,17 +73,22 @@ const Friends = () => {
           {friends.map((friend) => (
             <div key={friend.id} className="friend-card">
               <div className="friend-card-inner">
-                <img
-                  src={friend.avatar}
-                  alt={friend.name}
-                  className="friend-avatar"
-                />
-                <h3>{friend.name}</h3>
-                <p>Joined {new Date(friend.joinedDate).toLocaleDateString()}</p>
+                <div className="friend-info">
+                  <img
+                    src={friend.avatar}
+                    alt={friend.name}
+                    className="friend-avatar"
+                  />
+                  <h3>{friend.name}</h3>
+                  <p>
+                    Joined {new Date(friend.joinedDate).toLocaleDateString()}
+                  </p>
+                </div>
                 <div className="friend-actions">
                   <button
                     className="view-profile-btn"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleViewProfile(friend.id);
                     }}
@@ -74,6 +98,7 @@ const Friends = () => {
                   <button
                     className="message-btn"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleMessage(friend.id);
                     }}
@@ -121,6 +146,13 @@ const Friends = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {activeChatFriend && (
+        <ChatModal
+          friend={activeChatFriend}
+          onClose={() => setActiveChatFriend(null)}
+        />
       )}
     </div>
   );

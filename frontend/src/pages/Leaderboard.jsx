@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { db } from "../firebase/firebase";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import Header from "../components/common/Header";
 import "../styles/leaderboard.css";
 
@@ -33,27 +35,32 @@ const Leaderboard = () => {
   const [rankings, setRankings] = useState([]);
 
   useEffect(() => {
-    const friends = JSON.parse(localStorage.getItem("friends") || "[]");
-    
-    // Calculate current user's points
-    const user = {
-      id: "current-user",
-      name: "You",
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=you`,
-      points: calculateUserPoints("current-user"),
-      joinedDate: new Date().toISOString(),
+    const loadLeaderboard = async () => {
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(
+          usersRef,
+          orderBy('points', 'desc'),
+          limit(50)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const leaderboardData = querySnapshot.docs.map((doc, index) => ({
+          id: doc.id,
+          rank: index + 1,
+          name: doc.data().displayName || 'Unknown User',
+          points: doc.data().points || 0,
+          avatar: doc.data().photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.id}`,
+          level: Math.floor((doc.data().points || 0) / 100) + 1
+        }));
+
+        setRankings(leaderboardData);
+      } catch (error) {
+        console.error("Error loading leaderboard:", error);
+      }
     };
 
-    // Calculate friends' points
-    const rankingsWithPoints = [
-      user,
-      ...friends.map((friend) => ({
-        ...friend,
-        points: calculateUserPoints(friend.id),
-      })),
-    ].sort((a, b) => b.points - a.points);
-
-    setRankings(rankingsWithPoints);
+    loadLeaderboard();
   }, []);
 
   const handleUserClick = (userId) => {

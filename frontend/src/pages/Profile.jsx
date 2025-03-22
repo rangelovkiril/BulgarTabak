@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { auth, db } from "../firebase/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 import Header from "../components/common/Header";
-import ChatModal from "../components/chat/ChatModal";
 import "../styles/profile.css";
 
 const Profile = () => {
@@ -110,18 +112,64 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    if (friendId) {
-      // Load friend's profile
-      const friends = JSON.parse(localStorage.getItem("friends") || "[]");
-      const friend = friends.find((f) => f.id === Number(friendId));
-      if (friend) {
-        setViewingFriend(friend);
-      }
-    }
-  }, [friendId]);
+    const loadUserProfile = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser && !friendId) {
+          navigate('/');
+          return;
+        }
 
-  const handleUsernameSubmit = () => {
-    setUserData((prev) => ({ ...prev, isEditing: false }));
+        const userDocRef = friendId 
+          ? doc(db, 'users', friendId)
+          : doc(db, 'users', currentUser.uid);
+
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (!userDocSnap.exists()) {
+          console.error("User document not found");
+          return;
+        }
+
+        const profileData = userDocSnap.data();
+        setUserData(prev => ({
+          ...prev,
+          username: profileData.displayName || 'Unknown User',
+          email: profileData.email,
+          photoURL: profileData.photoURL,
+          joinedDate: profileData.createdAt || new Date().toISOString(),
+          points: profileData.points || 0,
+          streak: profileData.currentStreak || 0,
+          level: Math.floor((profileData.points || 0) / 100) + 1,
+          status: profileData.status || 'offline'
+        }));
+
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      }
+    };
+
+    loadUserProfile();
+  }, [friendId, navigate]);
+
+  const handleUsernameSubmit = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
+
+      await updateProfile(currentUser, {
+        displayName: userData.username
+      });
+
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        displayName: userData.username
+      });
+
+      setUserData(prev => ({ ...prev, isEditing: false }));
+    } catch (error) {
+      console.error("Error updating username:", error);
+    }
   };
 
   const handleRemoveFriend = () => {
@@ -169,7 +217,6 @@ const Profile = () => {
               className="profile-image"
             />
           </div>
-
           <div className="profile-info">
             <div className="profile-info-section">
               {viewingFriend ? (
@@ -220,14 +267,12 @@ const Profile = () => {
                 </>
               )}
             </div>
-
             {!viewingFriend && (
               <>
                 <div className="profile-info-section">
                   <span className="user-title">{userData.title}</span>
                   <p className="user-bio">{userData.bio}</p>
                 </div>
-
                 <div className="user-meta">
                   <div className="meta-item">
                     <span className="meta-icon">📍</span>
@@ -262,7 +307,6 @@ const Profile = () => {
             <h3>Points</h3>
             <p>{userData.points}</p>
           </div>
-
           <div className="stat-item">
             <div
               className="progress-ring"
@@ -273,7 +317,6 @@ const Profile = () => {
             <h3>Current Streak</h3>
             <p>{userData.streak}</p>
           </div>
-
           <div className="stat-item">
             <div
               className="progress-ring"
@@ -343,7 +386,6 @@ const Profile = () => {
           )}
         </div>
       </div>
-
       {showDetailedStats && (
         <div
           className="stats-modal-overlay"
@@ -357,7 +399,6 @@ const Profile = () => {
               ×
             </button>
             <h2>Detailed Statistics</h2>
-
             <div className="stats-sections">
               <div className="stats-section">
                 <h3>Daily Overview</h3>
@@ -376,7 +417,6 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-
               <div className="stats-section">
                 <h3>Weekly Progress</h3>
                 <div className="stats-grid">
@@ -394,7 +434,6 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-
               <div className="stats-section">
                 <h3>Monthly Achievement</h3>
                 <div className="stats-grid">
@@ -416,7 +455,6 @@ const Profile = () => {
           </div>
         </div>
       )}
-
       {showChat && viewingFriend && (
         <ChatModal friend={viewingFriend} onClose={() => setShowChat(false)} />
       )}

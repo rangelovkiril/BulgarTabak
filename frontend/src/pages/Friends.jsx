@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth, db } from "../firebase/firebase";
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
 import Header from "../components/common/Header";
 import "../styles/friends.css"; // This import should now work
 import ChatModal from "../components/chat/ChatModal";
@@ -13,24 +15,87 @@ const Friends = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const savedFriends = JSON.parse(localStorage.getItem("friends") || "[]");
-    setFriends(savedFriends);
+    const loadFriends = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          console.log("No authenticated user");
+          return;
+        }
+
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+          console.log("No user document found");
+          return;
+        }
+
+        const friendIds = userDocSnap.data().friends || [];
+        if (friendIds.length === 0) {
+          setFriends([]);
+          return;
+        }
+
+        // Get friend details
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where(doc.id, 'in', friendIds));
+        const querySnapshot = await getDocs(q);
+
+        const friendsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().displayName || 'Unknown User',
+          avatar: doc.data().photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.id}`,
+          level: Math.floor((doc.data().points || 0) / 100) + 1,
+          streak: doc.data().currentStreak || 0,
+          status: doc.data().status || 'offline'
+        }));
+
+        setFriends(friendsData);
+      } catch (error) {
+        console.error("Error loading friends:", error);
+      }
+    };
+
+    loadFriends();
   }, []);
 
-  const handleAddFriend = () => {
-    if (newFriendName.trim()) {
-      const newFriend = {
-        id: Date.now(),
-        name: newFriendName,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${newFriendName}`,
-        joinedDate: new Date().toISOString(),
-      };
+  const handleAddFriend = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || !newFriendName.trim()) return;
 
-      const updatedFriends = [...friends, newFriend];
-      localStorage.setItem("friends", JSON.stringify(updatedFriends));
-      setFriends(updatedFriends);
-      setNewFriendName("");
-      setIsAddingFriend(false);
+      // Search for user by email or name
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, 
+        where('displayName', '==', newFriendName.trim())
+      );
+      
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const friendDoc = querySnapshot.docs[0];
+        
+        // Add to current user's friends list
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+          friends: arrayUnion(friendDoc.id)
+        });
+
+        // Add new friend to state
+        setFriends(prev => [...prev, {
+          id: friendDoc.id,
+          name: friendDoc.data().displayName,
+          avatar: friendDoc.data().photoURL,
+          level: Math.floor((friendDoc.data().points || 0) / 100) + 1,
+          streak: friendDoc.data().currentStreak || 0,
+          status: friendDoc.data().status || 'offline'
+        }]);
+
+        setIsAddingFriend(false);
+        setNewFriendName('');
+      }
+    } catch (error) {
+      console.error("Error adding friend:", error);
     }
   };
 
